@@ -10,19 +10,32 @@ import RealmSwift
 
 class FruitRealmRepository {
 
-    func save(fruits:[Fruit]){
-        let fruitsRealm = fruits.map{FruitRealm(fruit: $0)}
-        let realm = try! Realm()
-        try! realm.write{
-            realm.deleteAll()
-            realm.add(fruitsRealm)
+    enum Error: Swift.Error {
+        case save
+        case read
+    }
+
+    func save(fruits:[Fruit]) throws {
+        do {
+            let fruitsRealm = fruits.map{ FruitRealm(fruit: $0) }
+            let realm = try Realm()
+            try realm.write {
+                realm.deleteAll()
+                realm.add(fruitsRealm)
+            }
+        } catch {
+            throw Error.save
         }
     }
 
-    func read() -> [Fruit]?{
-        let realm = try! Realm()
-        let resultsFruitRealm = Array(realm.objects(FruitRealm.self))
-        let results = resultsFruitRealm.map{$0.fruit}
-        return results
+    func read() throws -> [Fruit] {
+        do {
+            let realm = try Realm()
+            let resultsFruitRealm = Array(realm.objects(FruitRealm.self))
+            let results = resultsFruitRealm.map{ $0.fruit }
+            return results
+        } catch {
+            throw Error.read
+        }
     }
 }

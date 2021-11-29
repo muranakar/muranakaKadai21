@@ -20,10 +20,15 @@ class FruitsTableViewController: UITableViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+
         // MARK: - 追記
-        guard let readFruits = realmRepository.read() else{ return }
-        fruits = readFruits
+        do {
+            fruits = try realmRepository.read()
+        } catch {
+            presentAlert(message: "データの読み込みに失敗しました")
+        }
     }
+
     // MARK: - Table view data source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         fruits.count
@@ -41,9 +46,12 @@ class FruitsTableViewController: UITableViewController {
         fruits[indexPath.row].isCheck.toggle()
         tableView.reloadRows(at: [indexPath], with: .automatic)
         
-
         // MARK: - 追記
-        realmRepository.save(fruits: fruits)
+        do {
+            try realmRepository.save(fruits: fruits)
+        } catch {
+            presentAlert(message: "データの保存に失敗しました")
+        }
     }
 
     override func tableView(_ tableView: UITableView,
@@ -53,7 +61,11 @@ class FruitsTableViewController: UITableViewController {
             fruits.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
             // MARK: - 追記
-            realmRepository.save(fruits: fruits)
+            do {
+                try realmRepository.save(fruits: fruits)
+            } catch {
+                presentAlert(message: "データの保存に失敗しました")
+            }
         }
     }
 
@@ -86,7 +98,11 @@ class FruitsTableViewController: UITableViewController {
                         with: .top
                     )
                     // MARK: - 追記
-                    strongSelf.realmRepository.save(fruits: strongSelf.fruits)
+                    do {
+                        try strongSelf.realmRepository.save(fruits: strongSelf.fruits)
+                    } catch {
+                        strongSelf.presentAlert(message: "データの保存に失敗しました")
+                    }
                 case.cancel:
                     break
                 }
@@ -103,7 +119,11 @@ class FruitsTableViewController: UITableViewController {
                     strongSelf.fruits[indexPath.row].name = name
                     strongSelf.tableView.reloadRows(at: [indexPath], with: .automatic)
                     // MARK: - 追記
-                    strongSelf.realmRepository.save(fruits: strongSelf.fruits)
+                    do {
+                        try strongSelf.realmRepository.save(fruits: strongSelf.fruits)
+                    } catch {
+                        strongSelf.presentAlert(message: "データの保存に失敗しました")
+                    }
                 case.cancel:
                     break
                 }
@@ -111,5 +131,15 @@ class FruitsTableViewController: UITableViewController {
         default:
             break
         }
+    }
+
+    private func presentAlert(message: String) {
+        let alert = UIAlertController(title: "エラー", message: message, preferredStyle: .alert)
+
+        alert.addAction(
+            .init(title: "OK", style: .default, handler: nil)
+        )
+
+        present(alert, animated: true, completion: nil)
     }
 }
